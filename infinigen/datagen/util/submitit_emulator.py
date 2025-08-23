@@ -24,7 +24,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 CUDA_VARNAME = "CUDA_VISIBLE_DEVICES"
-NVIDIA_SMI_PATH = "/bin/nvidia-smi"
+NVIDIA_SMI_PATH = "nvidia-smi"
 
 
 @dataclass

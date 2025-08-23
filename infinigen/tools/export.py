@@ -8,23 +8,17 @@ import logging
 import math
 import shutil
 import subprocess
-import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import bpy
+import coacd
 import gin
 import numpy as np
 import trimesh
 
 from infinigen.core.util import blender as butil
-
-try:
-    import coacd
-except ImportError:
-    coacd = None
-    warnings.warn("coacd could not be imported. Some features may be unavailable.")
 
 FORMAT_CHOICES = ["fbx", "obj", "usdc", "usda", "stl", "ply"]
 BAKE_TYPES = {
@@ -862,20 +856,21 @@ def run_blender_export(
 
 
 def export_scene(
+    name: str,
     input_blend: Path,
     output_folder: Path,
     pipeline_folder=None,
     task_uniqname=None,
     **kwargs,
 ):
-    folder = output_folder / f"export_{input_blend.name}"
-    folder.mkdir(exist_ok=True, parents=True)
-    export_curr_scene(folder, **kwargs)
+   # folder = output_folder / f"{name}"
+    #folder.mkdir(exist_ok=True, parents=True)
+    export_curr_scene(name, output_folder, **kwargs)
 
     if pipeline_folder is not None and task_uniqname is not None:
         (pipeline_folder / "logs" / f"FINISH_{task_uniqname}").touch()
 
-    return folder
+    return output_folder#folder
 
 
 # side effects: will remove parents of inputted obj and clean its name, hides viewport of all objects
@@ -971,9 +966,6 @@ def export_sim_ready(
     """
     Exports both the visual and collision assets for a geometry.
     """
-    if not visual_only:
-        assert coacd is not None, "coacd is required to export simulation assets."
-
     asset_exports = defaultdict(list)
     export_name = name if name is not None else obj.name
 
@@ -1132,6 +1124,7 @@ def export_sim_ready(
 
 @gin.configurable
 def export_curr_scene(
+    name: str,
     output_folder: Path,
     format="usdc",
     image_res=1024,
@@ -1144,8 +1137,8 @@ def export_curr_scene(
     export_usd = format in ["usda", "usdc"]
 
     export_folder = output_folder
-    export_folder.mkdir(exist_ok=True)
-    export_file = export_folder / output_folder.with_suffix(f".{format}").name
+    # export_folder.mkdir(exist_ok=True)
+    export_file = output_folder/output_folder.with_suffix(f".{format}").name
 
     logging.info(f"Exporting to directory {export_folder=}")
 
@@ -1236,9 +1229,9 @@ def export_curr_scene(
                 continue
 
             obj_name = obj.name.replace("/", "_")
-            export_subfolder = export_folder / obj_name
+            export_subfolder = export_folder #/ obj_name
             export_subfolder.mkdir(exist_ok=True, parents=True)
-            export_file = export_subfolder / f"{obj_name}.{format}"
+            export_file = export_folder / f"{name}.{format}"
 
             logging.info(f"Exporting file to {export_file=}")
             obj.hide_viewport = False
@@ -1272,6 +1265,7 @@ def main(args):
         bpy.ops.wm.open_mainfile(filepath=str(blendfile))
 
         folder = export_scene(
+            args.name,
             blendfile,
             args.output_folder,
             format=args.format,
@@ -1281,7 +1275,7 @@ def main(args):
             omniverse_export=args.omniverse,
         )
         # wanted to use shutil here but kept making corrupted files
-        subprocess.call(["zip", "-r", str(folder.with_suffix(".zip")), str(folder)])
+       # subprocess.call(["zip", "-r", str(folder.with_suffix(".zip")), str(folder)])
 
     bpy.ops.wm.quit_blender()
 
@@ -1291,6 +1285,7 @@ def make_args():
 
     parser.add_argument("--input_folder", type=Path)
     parser.add_argument("--output_folder", type=Path)
+    parser.add_argument("--name", type=str)
 
     parser.add_argument("-f", "--format", type=str, choices=FORMAT_CHOICES)
 
