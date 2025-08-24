@@ -46,6 +46,8 @@ Blender-FLIP-Fluids
 *.out
 profiles_*.npz
 outputs
+Exports
+generated_floor_plans
 outputs_scratch
 snippets
 resources

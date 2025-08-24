@@ -1,0 +1,25 @@
+python -m infinigen_examples.generate_indoors --seed 1 --task coarse  --output_folder outputs/indoors_real/coarse_predefined1 -g singleroom.gin fast_solve.gin  -p compose_indoors.terrain_enabled=False Solver.floor_plan='infinigen_examples/configs_indoor/floor_plans/predefined1.json'
+ python scene_generator/run_infinigen_batch.py     --floorplans_root scene_generator/generated_floor_plans --outputs_root scene_generator/outputs --seed 1 --task coarse
+ python -m infinigen.tools.export --input_folder outputs/indoors_real/coarse_predefined --output_folder outputs/my_export_predefined -f fbx -r 1024
+
+Generate only:
+python scene_generator/run_infinigen_batch.py \
+    --floorplans_root scene_generator/generated_floor_plans/dining-room \
+    --outputs_root scene_generator/outputs/test \
+    --seed 1 --task coarse
+
+
+Generate + export in one step:
+python scene_generator/run_infinigen_batch.py \
+    --floorplans_root scene_generator/generated_floor_plans/test \
+    --outputs_root scene_generator/outputs/test \
+    --exports_root scene_generator/Exports/test \
+    --seed 1 --task coarse \
+    --export --retries 3 \
+    --cleanup
+
+Export separately later:
+python scene_generator/run_infinigen_exporter.py \
+    --input_root scene_generator/outputs/test \
+    --output_root scene_generator/Exports/test \
+    --cleanup
